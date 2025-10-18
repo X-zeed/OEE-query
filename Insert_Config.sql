@@ -1,0 +1,6 @@
+SET DEFINE OFF;
+Insert into CONFIG
+   (TOTAL_TIME, PM_TIME, IDEA_OUTPUT_RATING)
+ Values
+   (24, 1, 1000);
+COMMIT;
