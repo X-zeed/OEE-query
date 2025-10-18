@@ -1,15 +1,14 @@
-﻿
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M01',  'เครื่องผสมแป้ง',       'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M02',  'เครื่องไซโลแป้ง',      'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M03',  'เครื่องเทแป้ง',        'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M04',  'เครื่องรีดแป้ง',       'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M05',  'เครื่องฟีดเนย',        'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M06',  'เครื่องรีดพับทบ',      'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M07',  'เครื่องแบ่งลงถาด',     'LINE1');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M08',  'เครื่องรีดพับทบ',      'LINE2');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M09',  'เครื่องรีดบาง',        'LINE2');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M10', 'เครื่องตัดตามแนวยาว', 'LINE2');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M11', 'เครื่องฟีดไส้',        'LINE2');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M12', 'ไกด์ประกบ',             'LINE2');
-INSERT INTO Machine (Machine_id, description, LINE_id) VALUES ('M13', 'เครื่องทาไข่',         'LINE2');
-
+INSERT INTO Machine (machine_id, description, line_id) VALUES
+('m1',  'เครื่องผสมแป้ง',       'Line1'),
+('m2',  'เครื่องไซโลแป้ง',      'Line1'),
+('m3',  'เครื่องเทแป้ง',        'Line1'),
+('m4',  'เครื่องรีดแป้ง',       'Line1'),
+('m5',  'เครื่องฟีดเนย',        'Line1'),
+('m6',  'เครื่องรีดพับทบ',      'Line1'),
+('m7',  'เครื่องแบ่งลงถาด',     'Line1'),
+('m8',  'เครื่องรีดพับทบ',      'Line2'),
+('m9',  'เครื่องรีดบาง',        'Line2'),
+('m10', 'เครื่องตัดตามแนวยาว', 'Line2'),
+('m11', 'เครื่องฟีดไส้',        'Line2'),
+('m12', 'ไกด์ประกบ',             'Line2'),
+('m13', 'เครื่องทาไข่',         'Line2');
