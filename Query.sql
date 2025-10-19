@@ -143,19 +143,8 @@ FROM (
 ) AS r
 WHERE ll.lot_id = r.lot_id
   AND ll.line_id = 'LINE1';
----------------------
-UPDATE lot AS l
-SET 
-    qty_out = v.qty_out,
-    qty_rej = v.qty_rej
-FROM v_quality_lot AS v
-WHERE l.lot_id = v.lot_id
-  AND l.line_id = v.line_id;
----------------------
 
-
-
---2 Reject
+--2 Good
 UPDATE lot ll
 SET qty_out = g.good_count
 FROM (
@@ -168,5 +157,12 @@ FROM (
 ) AS g
 WHERE ll.lot_id = g.lot_id
   AND ll.line_id = 'LINE2';
-
-
+---------------------
+UPDATE lot AS l
+SET 
+    qty_out = v.qty_out,
+    qty_rej = v.qty_rej
+FROM v_quality_lot AS v
+WHERE l.lot_id = v.lot_id
+  AND l.line_id = v.line_id;
+---------------------
