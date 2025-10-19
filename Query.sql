@@ -95,21 +95,27 @@ SELECT * FROM V_OEE;
 ------- Report process
 --1.
 
-INSERT INTO MACHINE_TIME
-SELECT MACHINE_ID, LINE_ID,TXNDATE,
-               DECODE(STATE,'PROD', STATE_TIME,0) AS PROD_TIME,
-							 DECODE(STATE,'DOWN', STATE_TIME,0) AS DOWN_TIME
-FROM
-(
-SELECT  DISTINCT M.MACHINE_ID, MC.LINE_ID, 
-                M.START_TIME, M.END_TIME,STATE,
-								TRUNC(M.START_TIME) AS TXNDATE,
-								SUM(END_TIME - START_TIME) AS STATE_TIME
-FROM machine_state M, machine MC
-WHERE M.MACHINE_ID = MC.MACHINE_ID
-GROUP BY M.MACHINE_ID, MC.LINE_ID, 
-                M.START_TIME, M.END_TIME,STATE
-);
+INSERT INTO machine_time (machine_id, line_id, txn_date, prod_time, down_time)
+SELECT 
+    machine_id,
+    line_id,
+    txndate,
+    CASE WHEN state = 'PROD' THEN state_time ELSE 0 END AS prod_time,
+    CASE WHEN state = 'DOWN' THEN state_time ELSE 0 END AS down_time
+FROM (
+    SELECT 
+        DISTINCT m.machine_id,
+        mc.line_id,
+        m.start_time,
+        m.end_time,
+        m.state,
+        CAST(m.start_time AS date) AS txndate,
+        EXTRACT(EPOCH FROM SUM(m.end_time - m.start_time)) / 3600 AS state_time  -- ????????????????
+    FROM machine_state m
+    JOIN machine mc ON m.machine_id = mc.machine_id
+    GROUP BY 
+        m.machine_id, mc.line_id, m.start_time, m.end_time, m.state
+) AS sub;
 
 --2 Reject
 UPDATE lot AS ll
@@ -137,6 +143,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
