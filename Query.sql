@@ -116,8 +116,20 @@ WHERE R.INPUT_TIME >= L.START_TIME
 AND R.INPUT_TIME < L.END_TIME
 AND L.LOT_ID  = LL.LOT_ID
 GROUP BY L.LOT_ID
-)
-;
+);
+
+UPDATE lot AS ll
+SET qty_rej = r.reject_count
+FROM (
+  SELECT l.lot_id, COUNT(*) AS reject_count
+  FROM ss_reject AS r
+  JOIN lot AS l
+    ON r.input_time >= l.start_time
+   AND r.input_time < l.end_time
+  GROUP BY l.lot_id
+) AS r
+WHERE ll.lot_id = r.lot_id;
+
 
 --2 Reject
 UPDATE LOT LL
@@ -143,6 +155,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
