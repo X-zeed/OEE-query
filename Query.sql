@@ -42,7 +42,7 @@ SELECT
 FROM (
     SELECT DISTINCT
         m.line_id,
-        CAST(m.txndate AS date) AS txndate,
+        CAST(m.txn_date AS date) AS txndate,
         m.prod_time,
         m.down_time,
         (SELECT pm_time FROM config LIMIT 1) AS pm_time,
@@ -137,6 +137,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
