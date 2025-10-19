@@ -121,25 +121,13 @@ SELECT * FROM V_OEE;
 
 ------- Report process
 --1.
+-- ลบข้อมูลทั้งหมดในตาราง
+TRUNCATE TABLE machine_time;
 
-INSERT INTO machine_time (machine_id, line_id, txn_date, prod_time, down_time)
-SELECT 
-    machine_id,
-    line_id,
-    txndate,
-    CASE WHEN state = 'PROD' THEN state_time ELSE 0 END AS prod_time,
-    CASE WHEN state = 'DOWN' THEN state_time ELSE 0 END AS down_time
-FROM (
-    SELECT 
-        m.machine_id,
-        mc.line_id,
-        DATE(m.start_time) AS txndate,
-        state,
-        SUM(EXTRACT(EPOCH FROM (m.end_time - m.start_time))/3600) AS state_time  -- convert to hours
-    FROM machine_state m
-    JOIN machine mc ON m.machine_id = mc.machine_id
-    GROUP BY m.machine_id, mc.line_id, state, DATE(m.start_time)
-) sub;
+-- ใส่ข้อมูลจาก view ลงในตาราง
+INSERT INTO machine_time
+SELECT * FROM v_machine_time;
+
 
 --2 Reject
 UPDATE lot AS ll
@@ -167,6 +155,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
