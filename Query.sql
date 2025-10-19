@@ -108,16 +108,6 @@ GROUP BY M.MACHINE_ID, MC.LINE_ID,
 );
 
 --2 Reject
-UPDATE LOT LL
-SET QTY_REJ = (
-SELECT COUNT(*)
-FROM SS_REJECT R, LOT L
-WHERE R.INPUT_TIME >= L.START_TIME
-AND R.INPUT_TIME < L.END_TIME
-AND L.LOT_ID  = LL.LOT_ID
-GROUP BY L.LOT_ID
-);
-
 UPDATE lot AS ll
 SET qty_rej = r.reject_count
 FROM (
@@ -132,18 +122,6 @@ WHERE ll.lot_id = r.lot_id;
 
 
 --2 Reject
-UPDATE LOT LL
-SET QTY_OUT = (
-SELECT COUNT(*)
-FROM SS_GOOD R, LOT L
-WHERE R.INPUT_TIME >= L.START_TIME
-AND R.INPUT_TIME < L.END_TIME
-AND L.LOT_ID  = LL.LOT_ID
-GROUP BY L.LOT_ID
-)
-;
-
-
 UPDATE lot AS ll
 SET qty_out = g.good_count
 FROM (
@@ -155,6 +133,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
