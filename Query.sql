@@ -132,6 +132,17 @@ GROUP BY L.LOT_ID
 ;
 
 
+UPDATE lot AS ll
+SET qty_out = g.good_count
+FROM (
+  SELECT l.lot_id, COUNT(*) AS good_count
+  FROM ss_good AS r
+  JOIN lot AS l
+    ON r.input_time >= l.start_time
+   AND r.input_time < l.end_time
+  GROUP BY l.lot_id
+) AS g
+WHERE ll.lot_id = g.lot_id;
 
 
 
