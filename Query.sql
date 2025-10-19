@@ -130,43 +130,31 @@ SELECT * FROM v_machine_time;
 
 
 --2 Reject
-UPDATE lot AS ll
+UPDATE lot ll
 SET qty_rej = r.reject_count
 FROM (
-  SELECT l.lot_id, COUNT(*) AS reject_count
-  FROM ss_reject AS r
-  JOIN lot AS l
-    ON r.input_time >= l.start_time
-   AND r.input_time < l.end_time
-  GROUP BY l.lot_id
+    SELECT l.lot_id, COUNT(*) AS reject_count
+    FROM ss_reject r
+    JOIN lot l
+      ON r.input_time >= l.start_time
+     AND r.input_time < l.end_time
+    GROUP BY l.lot_id
 ) AS r
-WHERE ll.lot_id = r.lot_id;
+WHERE ll.lot_id = r.lot_id
+  AND ll.line_id = 'LINE1';
+
 
 
 --2 Reject
-UPDATE lot AS ll
+UPDATE lot ll
 SET qty_out = g.good_count
 FROM (
-  SELECT l.lot_id, COUNT(*) AS good_count
-  FROM ss_good AS r
-  JOIN lot AS l
-    ON r.input_time >= l.start_time
-   AND r.input_time < l.end_time
-  GROUP BY l.lot_id
+    SELECT l.lot_id, COUNT(*) AS good_count
+    FROM ss_good r
+    JOIN lot l
+      ON r.input_time >= l.start_time
+     AND r.input_time < l.end_time
+    GROUP BY l.lot_id
 ) AS g
-WHERE ll.lot_id = g.lot_id;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+WHERE ll.lot_id = g.lot_id
+  AND ll.line_id = 'LINE2';
