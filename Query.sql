@@ -50,6 +50,33 @@ FROM (
     FROM machine_time m
 ) AS sub;
 
+CREATE OR REPLACE VIEW v_machine_time AS
+SELECT 
+    machine_id,
+    line_id,
+    txndate,
+    SUM(prod_time) AS prod_time,
+    SUM(down_time) AS down_time
+FROM (
+    SELECT 
+        machine_id,
+        line_id,
+        txndate,
+        CASE WHEN state = 'PROD' THEN state_time ELSE 0 END AS prod_time,
+        CASE WHEN state = 'DOWN' THEN state_time ELSE 0 END AS down_time
+    FROM (
+        SELECT 
+            m.machine_id,
+            mc.line_id,
+            state,
+            DATE(m.start_time) AS txndate,
+            SUM(EXTRACT(EPOCH FROM (m.end_time - m.start_time)) / 3600) AS state_time
+        FROM machine_state m
+        JOIN machine mc ON m.machine_id = mc.machine_id
+        GROUP BY m.machine_id, mc.line_id, state, DATE(m.start_time)
+    ) sub1
+) sub2
+GROUP BY machine_id, line_id, txndate;
 
 
 SELECT * from MACHINE_TIME;
@@ -140,6 +167,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
