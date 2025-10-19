@@ -33,19 +33,23 @@ SELECT * FROM V_Quality_Lot;
 ------------------------------------------------------------------------------------------------------------------
 ;
 
-CREATE OR REPLACE VIEW V_WORK_TIME AS
-SELECT LINE_ID,TXNDATE,
-              (TOTAL_TIME - PM_TIME) AS SCHED_WORK_TIME,
-							(TOTAL_TIME - PM_TIME) - DOWN_TIME AS ACTUAL_WORK_TIME 
+CREATE OR REPLACE VIEW v_work_time AS
+SELECT 
+    line_id,
+    txndate,
+    (total_time - pm_time) AS sched_work_time,
+    (total_time - pm_time) - down_time AS actual_work_time
 FROM (
-SELECT DISTINCT
-             M.LINE_ID,
-						 TRUNC(M.TXNDATE) AS TXNDATE,
-						 M.PROD_TIME,M.DOWN_TIME,
-						 (SELECT PM_TIME FROM CONFIG) AS PM_TIME,
-						 (SELECT TOTAL_TIME FROM CONFIG) AS TOTAL_TIME
-FROM MACHINE_TIME M
-);
+    SELECT DISTINCT
+        m.line_id,
+        CAST(m.txndate AS date) AS txndate,
+        m.prod_time,
+        m.down_time,
+        (SELECT pm_time FROM config LIMIT 1) AS pm_time,
+        (SELECT total_time FROM config LIMIT 1) AS total_time
+    FROM machine_time m
+) AS sub;
+
 
 
 SELECT * from MACHINE_TIME;
@@ -133,6 +137,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
