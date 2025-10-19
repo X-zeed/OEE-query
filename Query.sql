@@ -1,22 +1,23 @@
 ﻿SELECT * from LOT;
 
-CREATE OR REPLACE VIEW V_Quality AS
-SELECT LINE_ID, TXNDATE, 
-              SUM(QTY_IN) AS QTY_IN,
-							SUM(NVL(QTY_OUT,QTY_IN-QTY_REJ)) AS QTY_OUT,
-							SUM(NVL(QTY_REJ,0)) AS QTY_REJ
-FROM
-(
-SELECT DISTINCT
-     LINE_ID,
-		 START_TIME,
-		 TRUNC(START_TIME) AS TXNDATE,
-		 QTY_IN,
-		 QTY_OUT,
-		 QTY_REJ 
-FROM LOT
-)
-GROUP BY LINE_ID,TXNDATE;
+CREATE OR REPLACE VIEW v_quality AS
+SELECT 
+    line_id, 
+    txndate, 
+    SUM(qty_in) AS qty_in,
+    SUM(COALESCE(qty_out, qty_in - qty_rej)) AS qty_out,
+    SUM(qty_rej) AS qty_rej
+FROM (
+    SELECT DISTINCT
+        line_id,
+        start_time,
+        CAST(start_time AS DATE) AS txndate,
+        COALESCE(qty_in, 0) AS qty_in,
+        COALESCE(qty_out, 0) AS qty_out,
+        COALESCE(qty_rej, 0) AS qty_rej
+    FROM lot
+) AS sub
+GROUP BY line_id, txndate;
 
 CREATE OR REPLACE VIEW V_Quality_Lot AS
 SELECT DISTINCT
@@ -158,3 +159,4 @@ FROM (
 ) AS g
 WHERE ll.lot_id = g.lot_id
   AND ll.line_id = 'LINE2';
+
