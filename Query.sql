@@ -104,18 +104,15 @@ SELECT
     CASE WHEN state = 'DOWN' THEN state_time ELSE 0 END AS down_time
 FROM (
     SELECT 
-        DISTINCT m.machine_id,
+        m.machine_id,
         mc.line_id,
-        m.start_time,
-        m.end_time,
-        m.state,
-        CAST(m.start_time AS date) AS txndate,
-        EXTRACT(EPOCH FROM SUM(m.end_time - m.start_time)) / 3600 AS state_time  -- ????????????????
+        DATE(m.start_time) AS txndate,
+        state,
+        SUM(EXTRACT(EPOCH FROM (m.end_time - m.start_time))/3600) AS state_time  -- convert to hours
     FROM machine_state m
     JOIN machine mc ON m.machine_id = mc.machine_id
-    GROUP BY 
-        m.machine_id, mc.line_id, m.start_time, m.end_time, m.state
-) AS sub;
+    GROUP BY m.machine_id, mc.line_id, state, DATE(m.start_time)
+) sub;
 
 --2 Reject
 UPDATE lot AS ll
@@ -143,6 +140,7 @@ FROM (
   GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id;
+
 
 
 
