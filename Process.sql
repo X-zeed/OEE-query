@@ -85,14 +85,6 @@ insert into ss_good values
 ('LINE2','2025-10-15 16:00:00');
 
 4. run report preocess 
---1.
--- ลบข้อมูลทั้งหมดในตาราง
-TRUNCATE TABLE machine_time;
-
--- ใส่ข้อมูลจาก view ลงในตาราง
-INSERT INTO machine_time
-SELECT * FROM v_machine_time;
-
 --2 Reject
 UPDATE lot ll
 SET qty_rej = r.reject_count
@@ -129,8 +121,3 @@ FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
 ---------------------
-
---4 v_ooe -> oee
-TRUNCATE TABLE oee;
-insert into oee 
-select distinct * from v_oee;
