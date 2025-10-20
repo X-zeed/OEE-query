@@ -1,8 +1,9 @@
+
 CREATE OR REPLACE VIEW v_oee AS
 SELECT 
     m.line_id,
-    m.txn_date,
-    TO_CHAR(m.txn_date, 'MON') AS month,
+    m.txndate,
+    TO_CHAR(m.txndate, 'MON') AS month,
     c.quarter,
     c.year,
     ROUND((w.actual_work_time::double precision / w.sched_work_time::double precision)::numeric, 2) * 100 AS availability,
@@ -29,13 +30,13 @@ SELECT
         )::numeric * 100, 
         2
     ) AS oee
-FROM machine_time m
+FROM v_machine_time m
 JOIN calendar c 
-    ON m.txn_date >= c.start_date 
-    AND m.txn_date < c.end_date
+    ON m.txndate >= c.start_date 
+    AND m.txndate < c.end_date
 LEFT JOIN v_quality q 
     ON m.line_id = q.line_id 
-    AND m.txn_date = q.txndate
+    AND m.txndate = q.txndate
 LEFT JOIN v_work_time w 
     ON m.line_id = w.line_id 
-    AND m.txn_date = w.txndate;
+    AND m.txndate = w.txndate;
