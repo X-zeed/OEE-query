@@ -63,8 +63,14 @@ FROM (
         machine_id,
         line_id,
         txndate,
-        CASE WHEN state = 'PROD' THEN state_time ELSE 0 END AS prod_time,
-        CASE WHEN state = 'DOWN' THEN state_time ELSE 0 END AS down_time
+        CASE 
+            WHEN state = 'PROD' THEN state_time 
+            ELSE 0 
+        END AS prod_time,
+        CASE 
+            WHEN state IN ('UDOWN', 'SDOWN', 'IDLE', 'SETUP') THEN state_time 
+            ELSE 0 
+        END AS down_time
     FROM (
         SELECT 
             m.machine_id,
@@ -78,6 +84,7 @@ FROM (
     ) sub1
 ) sub2
 GROUP BY machine_id, line_id, txndate;
+
 
 
 SELECT * from MACHINE_TIME;
@@ -166,3 +173,4 @@ FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
 ---------------------
+
