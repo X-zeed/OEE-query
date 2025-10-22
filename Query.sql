@@ -109,12 +109,12 @@ SELECT
     c.quarter,
     c.year,
     ROUND((w.actual_work_time::double precision / w.sched_work_time::double precision)::numeric, 2) * 100 AS availability,
-    ROUND(((q.qty_good::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))::numeric * 100, 2) AS performance,
+    ROUND(((q.qty_out::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))::numeric * 100, 2) AS performance,
     ROUND(((q.qty_good::double precision ) / q.qty_out::double precision) * 100) AS quality,
     ROUND(
         (
             (w.actual_work_time::double precision / w.sched_work_time::double precision)
-            * ((q.qty_good::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))
+            * ((q.qty_out::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))
             * ((q.qty_good::double precision  / q.qty_out::double precision))
         )::numeric * 100, 
         2
@@ -189,4 +189,5 @@ SET
 FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
+
 
