@@ -1,12 +1,23 @@
-﻿SELECT * from LOT;
-
+--1.ชุดการคำนวณ Quality
 CREATE OR REPLACE VIEW v_quality AS
 SELECT 
     line_id, 
     txndate, 
     SUM(qty_in) AS qty_in,
-    SUM(COALESCE(qty_out, qty_in - qty_rej)) AS qty_out,
-    SUM(qty_rej) AS qty_rej
+    SUM(COALESCE(qty_out, qty_good + qty_rej)) AS qty_out,
+    SUM(
+        CASE 
+            WHEN line_id = 'LINE2' THEN qty_out - qty_good
+            ELSE qty_rej
+        END
+    ) AS qty_rej,
+    SUM(
+        CASE 
+            WHEN line_id = 'LINE1' THEN qty_out - qty_rej
+            ELSE qty_good
+        END
+    ) AS qty_good
+
 FROM (
     SELECT DISTINCT
         line_id,
@@ -14,26 +25,28 @@ FROM (
         CAST(start_time AS DATE) AS txndate,
         COALESCE(qty_in, 0) AS qty_in,
         COALESCE(qty_out, 0) AS qty_out,
-        COALESCE(qty_rej, 0) AS qty_rej
+        COALESCE(qty_rej, 0) AS qty_rej,
+	COALESCE(qty_good, 0) AS qty_good
     FROM lot
 ) AS sub
 GROUP BY line_id, txndate;
 
-CREATE OR REPLACE VIEW V_Quality_Lot AS
+
+CREATE OR REPLACE VIEW v_quality_lot AS
 SELECT DISTINCT
-     LINE_ID,
-		 LOT_ID,
-     START_TIME,
-     QTY_IN,
-     NVL(QTY_OUT,QTY_IN-QTY_REJ) AS QTY_OUT,
-     NVL(QTY_REJ,0) AS QTY_REJ
-FROM LOT;
+    line_id,
+    lot_id,
+    start_time,
+    qty_in,
+    COALESCE(qty_out, qty_good + qty_rej) AS qty_out,
+    COALESCE(qty_rej, qty_out - qty_good) AS qty_rej,
+    COALESCE(qty_good, qty_out - qty_rej) AS qty_good
+FROM lot;
 
 SELECT * FROM V_Quality_Lot;
 
 ------------------------------------------------------------------------------------------------------------------
-;
-
+--2.ชุดการคำนวณเวลาการทำงานของเครื่องจักร
 CREATE OR REPLACE VIEW v_work_time AS
 SELECT 
     line_id,
@@ -85,45 +98,37 @@ FROM (
 ) sub2
 GROUP BY machine_id, line_id, txndate;
 
-
-
 SELECT * from MACHINE_TIME;
-
-CREATE OR REPLACE VIEW V_OEE AS
-SELECT
-      LINE_ID,
-		 TXNDATE,
-		 WW,
-		 MONTH,
-		 QUARTER,
-		 YEAR,
-		 ROUND(AVAILABILITY,2) AS AVAILABILITY,
-		 ROUND(PERFORMANCE,2) AS PERFORMANCE, 
-		 ROUND(QUALITY,2) AS QUALITY,
-		 ROUND((AVAILABILITY *  PERFORMANCE * QUALITY) /100,2) AS OEE
-FROM
-(
-SELECT DISTINCT 
-     M.LINE_ID,
-		 M.TXNDATE,
-		 C.WW,
-		 C.MONTH,
-		 C.QUARTER,
-		 C.YEAR,
-		 (W.ACTUAL_WORK_TIME / W.SCHED_WORK_TIME) * 100 AS AVAILABILITY,
-		 (Q.QTY_OUT/W.ACTUAL_WORK_TIME) / (SELECT IDEA_OUTPUT_RATING FROM CONFIG) * 100 AS PERFORMANCE,
-		 CASE 
-		    WHEN M.LINE_ID = 'LINE1' THEN   ((Q.QTY_IN - Q.QTY_REJ) / QTY_IN) * 100
-				WHEN M.LINE_ID = 'LINE2' THEN  ((Q.QTY_OUT) / QTY_IN) * 100
-				ELSE 0 END AS QUALITY
-FROM MACHINE_TIME M,  
-             CALENDAR C, 
-						 V_QUALITY Q,
-						 V_WORK_TIME W
-WHERE M.TXNDATE >=  C.STARTDATE AND M.TXNDATE < C.ENDDATE
-AND M.LINE_ID = Q.LINE_ID  AND M.TXNDATE = Q.TXNDATE
-AND M.LINE_ID = W.LINE_ID AND M.TXNDATE  = W.TXNDATE
-);
+---------------------------------------------------------------------------------------------
+--3.ชุดการคำนวณค่า OEE
+CREATE OR REPLACE VIEW v_oee AS
+SELECT 
+    m.line_id,
+    m.txndate,
+    TO_CHAR(m.txndate, 'MON') AS month,
+    c.quarter,
+    c.year,
+    ROUND((w.actual_work_time::double precision / w.sched_work_time::double precision)::numeric, 2) * 100 AS availability,
+    ROUND(((q.qty_good::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))::numeric * 100, 2) AS performance,
+    ROUND(((q.qty_good::double precision ) / q.qty_out::double precision) * 100) AS quality,
+    ROUND(
+        (
+            (w.actual_work_time::double precision / w.sched_work_time::double precision)
+            * ((q.qty_good::double precision / w.actual_work_time::double precision) / (SELECT idea_output_rating::double precision FROM config))
+            * ((q.qty_good::double precision  / q.qty_out::double precision))
+        )::numeric * 100, 
+        2
+    ) AS oee
+FROM v_machine_time m
+JOIN calendar c 
+    ON m.txndate >= c.start_date 
+    AND m.txndate < c.end_date
+LEFT JOIN v_quality q 
+    ON m.line_id = q.line_id 
+    AND m.txndate = q.txndate
+LEFT JOIN v_work_time w 
+    ON m.line_id = w.line_id 
+    AND m.txndate = w.txndate;
 
 SELECT * FROM V_OEE;
 
@@ -136,8 +141,7 @@ TRUNCATE TABLE machine_time;
 INSERT INTO machine_time
 SELECT * FROM v_machine_time;
 
-
---2 Reject
+--1 Reject
 UPDATE lot ll
 SET qty_rej = r.reject_count
 FROM (
@@ -150,27 +154,39 @@ FROM (
 ) AS r
 WHERE ll.lot_id = r.lot_id
   AND ll.line_id = 'LINE1';
-
 --2 Good
 UPDATE lot ll
-SET qty_out = g.good_count
+SET qty_good = g.good_count
 FROM (
     SELECT l.lot_id, COUNT(*) AS good_count
-    FROM ss_good r
+    FROM ss_good g
     JOIN lot l
-      ON r.input_time >= l.start_time
-     AND r.input_time < l.end_time
+      ON g.input_time >= l.start_time
+     AND g.input_time < l.end_time
     GROUP BY l.lot_id
 ) AS g
 WHERE ll.lot_id = g.lot_id
   AND ll.line_id = 'LINE2';
+--3 Output
+UPDATE lot ll
+SET qty_out = g.output_count
+FROM (
+    SELECT l.lot_id, COUNT(*) AS output_count
+    FROM ss_output o
+    JOIN lot l
+      ON o.input_time >= l.start_time
+     AND o.input_time < l.end_time
+    GROUP BY l.lot_id
+) AS g
+WHERE ll.lot_id = g.lot_id;
+--4 Update to lot
 ---------------------
 UPDATE lot AS l
 SET 
-    qty_out = v.qty_out,
-    qty_rej = v.qty_rej
+    qty_good = v.qty_good,
+    qty_rej = v.qty_rej,
+    qty_out = v.qty_out
 FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
----------------------
 
