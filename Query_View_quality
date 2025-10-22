@@ -1,4 +1,4 @@
-DROP VIEW IF EXISTS v_quality;
+drop VIEW IF EXISTS v_quality;
 
 CREATE VIEW v_quality AS
 SELECT 
