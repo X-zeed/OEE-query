@@ -31,7 +31,6 @@ FROM (
 ) AS sub
 GROUP BY line_id, txndate;
 
-
 CREATE OR REPLACE VIEW v_quality_lot AS
 SELECT DISTINCT
     line_id,
@@ -39,11 +38,17 @@ SELECT DISTINCT
     start_time,
     qty_in,
     qty_out,
-    qty_rej,
-    qty_good
+    CASE 
+        WHEN line_id = 'LINE2' THEN COALESCE(qty_rej, qty_out - qty_good)
+        ELSE qty_rej
+    END AS qty_rej,
+    CASE 
+        WHEN line_id = 'LINE1' THEN COALESCE(qty_good, qty_out - qty_rej)
+        ELSE qty_good
+    END AS qty_good
 FROM lot;
 
-SELECT * FROM V_Quality_Lot;
+SELECT * FROM v_quality_Lot;
 
 ------------------------------------------------------------------------------------------------------------------
 --2.ชุดการคำนวณเวลาการทำงานของเครื่องจักร
@@ -189,6 +194,7 @@ SET
 FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
+
 
 
 
