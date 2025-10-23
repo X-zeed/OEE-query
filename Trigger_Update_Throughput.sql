@@ -45,7 +45,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_update_throughput
+-- Trigger สำหรับ ss_output
+CREATE TRIGGER trg_update_throughput_output
 AFTER INSERT ON ss_output
+FOR EACH ROW
+EXECUTE FUNCTION update_throughput();
+
+-- Trigger สำหรับ ss_reject
+CREATE TRIGGER trg_update_throughput_reject
+AFTER INSERT ON ss_reject
+FOR EACH ROW
+EXECUTE FUNCTION update_throughput();
+
+-- Trigger สำหรับ ss_good
+CREATE TRIGGER trg_update_throughput_good
+AFTER INSERT ON ss_good
 FOR EACH ROW
 EXECUTE FUNCTION update_throughput();
