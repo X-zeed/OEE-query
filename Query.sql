@@ -104,6 +104,41 @@ FROM (
 GROUP BY machine_id, line_id, txndate;
 
 SELECT * from MACHINE_TIME;
+
+CREATE OR REPLACE VIEW v_line_state AS
+WITH machine_line AS (
+    SELECT
+        m.machine_id,
+        CASE 
+            WHEN m.machine_id BETWEEN 'M01' AND 'M06' THEN 'LINE1'
+            WHEN m.machine_id BETWEEN 'M07' AND 'M12' THEN 'LINE2'
+        END AS line_id,
+        m.start_time,
+        m.end_time,
+        m.state
+    FROM machine_state m
+),
+line_periods AS (
+    SELECT
+        l.line_id,
+        GREATEST(m.start_time, l.start_time) AS start_time,
+        LEAST(m.end_time, l.end_time) AS end_time,
+        m.state
+    FROM lot l
+    JOIN machine_line m
+      ON m.line_id = l.line_id
+     AND m.start_time < l.end_time
+     AND m.end_time > l.start_time
+)
+SELECT
+    line_id,
+    start_time,
+    end_time,
+    state
+FROM line_periods
+WHERE start_time < end_time
+ORDER BY line_id, start_time;
+
 ---------------------------------------------------------------------------------------------
 --3.ชุดการคำนวณค่า OEE
 CREATE OR REPLACE VIEW v_oee AS
@@ -194,6 +229,7 @@ SET
 FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
+
 
 
 
