@@ -86,7 +86,8 @@ FROM (
             ELSE 0 
         END AS prod_time,
         CASE 
-            WHEN state IN ('UDOWN', 'SDOWN', 'IDLE', 'SETUP') THEN state_time 
+            WHEN state = 'UDOWN' THEN state_time 
+			-- WHEN state IN ('UDOWN', 'SDOWN', 'IDLE', 'SETUP') THEN state_time
             ELSE 0 
         END AS down_time
     FROM (
@@ -229,6 +230,7 @@ SET
 FROM v_quality_lot AS v
 WHERE l.lot_id = v.lot_id
   AND l.line_id = v.line_id;
+
 
 
 
