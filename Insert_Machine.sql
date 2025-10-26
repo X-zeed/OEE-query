@@ -14,3 +14,18 @@ INSERT INTO Machine (machine_id, description, line_id) VALUES
 ('M13', 'เครื่องทาไข่',        'LINE2');
 
 
+
+INSERT INTO Machine (machine_id, description, line_id) VALUES
+('Mixer',  'เครื่องผสมแป้ง',       'LINE1'),
+('DoughSilo',  'เครื่องไซโลแป้ง',      'LINE1'),
+('Dough Sheeter1',  'เครื่องรีดแป้ง',        'LINE1'),
+('Butter Feeding',  'เครื่องฟีดเนย',       'LINE1'),
+('Dough Sheeter2',  'เครื่องรีดพับทบ',        'LINE1'),
+('Dough Sheeter3',  'เครื่องแบ่งลงถาด',      'LINE1'),
+('Loading Machine',  'เครื่องเคลื่อนย้ายแป้ง',     'LINE1'),
+('Dough Sheeter6',  'เครื่องรีดพับทบ',      'LINE2'),
+('Dough Sheeter7',  'เครื่องรีดบาง',       'LINE2'),
+('Cutting Machine', 'เครื่องตัดตามแนวยาว', 'LINE2'),
+('Flavor Feeding Machine', 'เครื่องฟีดไส้',        'LINE2'),
+('Escort Guide', 'ไกด์ประกบ',         'LINE2'),
+('Egg Feeding Machine', 'เครื่องทาไข่',        'LINE2');
