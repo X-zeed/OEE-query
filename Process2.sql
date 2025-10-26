@@ -805,6 +805,13 @@ insert into ss_output values
 
     
 4. run report preocess 
+    
+--0 ลบข้อมูลทั้งหมดในตาราง
+TRUNCATE TABLE machine_time;
+
+-- ใส่ข้อมูลจาก view ลงในตาราง
+INSERT INTO machine_time
+SELECT * FROM v_machine_time;
 
 --1 Reject
 UPDATE lot ll
